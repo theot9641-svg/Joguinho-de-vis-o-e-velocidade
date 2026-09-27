@@ -1,0 +1,202 @@
+# Joguinho-de-vis-o-e-velocidade
+Joguinho pra testar sua visão e velocidade
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Caça ao Alvo</title>
+
+    <style>
+        body {
+            margin: 0;
+            text-align: center;
+            font-family: Arial;
+            background: #111;
+            color: white;
+        }
+
+        #menu {
+            margin-top: 30px;
+        }
+
+        button {
+            padding: 12px 20px;
+            margin: 5px;
+            font-size: 18px;
+            border: none;
+            border-radius: 8px;
+        }
+
+        #jogo {
+            width: 90%;
+            max-width: 500px;
+            height: 400px;
+            margin: 20px auto;
+            background: #222;
+            border: 3px solid white;
+            position: relative;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        #alvo {
+            width: 50px;
+            height: 50px;
+            background: red;
+            border-radius: 50%;
+            position: absolute;
+            touch-action: none;
+        }
+
+        #timer {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        #mensagem {
+            font-size: 22px;
+            min-height: 30px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>🎯 Caça ao Alvo</h1>
+
+    <div id="menu">
+        <p>Escolha a dificuldade:</p>
+
+        <button onclick="escolherModo(2000)">
+            🟢 Easy
+        </button>
+
+        <button onclick="escolherModo(1000)">
+            🟡 Médio
+        </button>
+
+        <button onclick="escolherModo(500)">
+            🔴 Hard
+        </button>
+    </div>
+
+    <p>Pontos: <span id="pontos">0</span></p>
+    <p>Tempo: <span id="timer">--</span></p>
+
+    <div id="jogo">
+        <div id="alvo"></div>
+    </div>
+
+    <p id="mensagem"></p>
+
+    <button onclick="reiniciar()">🔄 Recomeçar</button>
+
+    <script>
+        const jogo = document.getElementById("jogo");
+        const alvo = document.getElementById("alvo");
+        const pontosTexto = document.getElementById("pontos");
+        const timerTexto = document.getElementById("timer");
+        const mensagem = document.getElementById("mensagem");
+
+        let pontos = 0;
+        let tempoMaximo = 2000;
+        let inicio = 0;
+        let jogando = false;
+        let animacao = null;
+
+        function escolherModo(tempo) {
+            tempoMaximo = tempo;
+            reiniciar();
+        }
+
+        function moverAlvo() {
+            const maxX = jogo.clientWidth - alvo.offsetWidth;
+            const maxY = jogo.clientHeight - alvo.offsetHeight;
+
+            const x = Math.random() * maxX;
+            const y = Math.random() * maxY;
+
+            alvo.style.left = x + "px";
+            alvo.style.top = y + "px";
+        }
+
+        function iniciarTimer() {
+            inicio = performance.now();
+
+            cancelAnimationFrame(animacao);
+            atualizarTimer();
+        }
+
+        function atualizarTimer() {
+            if (!jogando) return;
+
+            const agora = performance.now();
+            const restante = tempoMaximo - (agora - inicio);
+
+            if (restante <= 0) {
+                timerTexto.textContent = "0.00s";
+                perder("⏰ Tempo esgotado!");
+                return;
+            }
+
+            timerTexto.textContent =
+                (restante / 1000).toFixed(2) + "s";
+
+            animacao = requestAnimationFrame(atualizarTimer);
+        }
+
+        function acertou() {
+            if (!jogando) return;
+
+            pontos++;
+            pontosTexto.textContent = pontos;
+
+            moverAlvo();
+            iniciarTimer();
+        }
+
+        function perder(texto) {
+            jogando = false;
+
+            cancelAnimationFrame(animacao);
+
+            mensagem.textContent =
+                texto + " Você fez " + pontos + " pontos!";
+
+            alvo.style.display = "none";
+        }
+
+        alvo.addEventListener("pointerdown", function(event) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            acertou();
+        });
+
+        jogo.addEventListener("pointerdown", function(event) {
+            if (!jogando) return;
+
+            if (event.target !== alvo) {
+                perder("💥 Você clicou fora!");
+            }
+        });
+
+        function reiniciar() {
+            pontos = 0;
+
+            pontosTexto.textContent = "0";
+            mensagem.textContent = "";
+
+            alvo.style.display = "block";
+
+            jogando = true;
+
+            moverAlvo();
+            iniciarTimer();
+        }
+
+        // O jogo começa parado até escolher uma dificuldade
+        alvo.style.display = "none";
+    </script>
+
+</body>
+</html>
